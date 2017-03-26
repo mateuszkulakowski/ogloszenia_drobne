@@ -1,0 +1,90 @@
+﻿
+@{
+    ViewBag.Title = "EdytujAtrybut";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section scripts
+{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("button").click(function () {
+
+                if (this.id == "wstecz1") {
+
+                    //klikniecie przycisku wstecz modyfikuje dropdownlist
+                    $("#CategoryID option").each(function () {
+                        // Add $(this).val() to your list
+                        if ($(this).val() != -1) {
+                            $.get("/Ogloszenie/previousCategories/" + $(this).val(), function (data) {
+                                if (data != "")//jeżeli data="" to jest już korzeń naszego drzewa
+                                {
+                                    $("#CategoryID").html(data);
+                                }
+
+                            });
+                            return false; //jeżeli znajdzie jakąś kategorię w dropdownliscie różnej od etykiety z id -1 to kończy działanie
+                        }
+                    });
+                }
+                if (this.id == "dalej1") {
+
+                    $.get("/Ogloszenie/getChildrenCategory/" + $("#CategoryID > option:selected").attr("value"), function (data) {
+                        if (data != "")//sprawdzanie czy metoda nie stwierdziła że to już jest liść
+                        {
+                            $("#CategoryID").html(data);
+                        }
+
+                    });
+                }
+                if (this.id == "szukajatrybutow") {
+
+                    if ($("#CategoryID > option:selected").attr("value") == -1) {
+                        $("#extra").html("Nie wybrałeś kategorii!");
+                    }
+                    else {
+                        $.get("/Attribute/getAttributesCategory/" + $("#CategoryID > option:selected").attr("value"), function (data) {
+
+
+                            $("#extra").html(data);
+
+
+                        });
+                    }
+
+                }
+            });
+        });
+
+
+    </script>
+}
+
+<h2>Zarządzanie Atrybutami</h2>
+@Html.ActionLink("Dodaj Atrybut", "DodajAtrybut", "Admin")<br />
+<br/><br/>
+    <div class="form-horizontal">
+
+        <div class="form-group">
+            <label class="control-label col-md-2" for="CategoryID">Kategoria</label>
+            <div class="col-md-10">
+                @Html.DropDownList("CategoryID", null, htmlAttributes: new { @class = "form-control" })
+                <button type="button" id="wstecz1" class="btn btn-info">Wstecz</button>
+                <button type="button" id="dalej1" class="btn btn-info">Dalej</button>
+                <span style="color:red">@ViewBag.NieWybranoKategorii</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <button type="button" id="szukajatrybutow" class="btn btn-default">Szukaj Atrybutów</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="extra">
+
+    </div>
+
+
+

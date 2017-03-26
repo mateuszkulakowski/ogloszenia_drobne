@@ -1,0 +1,289 @@
+﻿
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0 charset=UTF-8">
+    <title>@ViewBag.Title - Ogłoszenia</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    <script src="~/Scripts/jquery-3.1.1.js"></script>
+    <script src="~/Scripts/bootstrap.min1.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            $("#wybranaZaawansowane").change(function () {
+                $.get("/Ogloszenie/getExtraZaawansowane/" + $("#wybranaZaawansowane > option:selected").attr("value"), function (data) {
+                    $("#extraZaawansowane").html(data);
+                });
+            });
+
+
+            $("button").click(function () {
+
+                if (this.id == "wsteczKategoria") {
+
+                    //klikniecie przycisku wstecz modyfikuje dropdownlist
+                    $("#wybranaKategoria option").each(function () {
+                        // Add $(this).val() to your list
+                        if ($(this).val() != -1) {
+                            $.get("/Ogloszenie/previousCategories/" + $(this).val(), function (data) {
+                                if (data != "")//jeżeli data="" to jest już korzeń naszego drzewa
+                                {
+                                    $("#wybranaKategoria").html(data);
+                                }
+
+                            });
+                            return false; //jeżeli znajdzie jakąś kategorię w dropdownliscie różnej od etykiety z id -1 to kończy działanie
+                        }
+                    });
+                }
+                if (this.id == "wsteczZaawansowane")
+                {
+                    $("#extraZaawansowane").html("");
+
+                    //klikniecie przycisku wstecz modyfikuje dropdownlist
+                    $("#wybranaZaawansowane option").each(function () {
+                        // Add $(this).val() to your list
+                        if ($(this).val() != -1) {
+                            $.get("/Ogloszenie/previousCategories/" + $(this).val(), function (data) {
+                                if (data != "")//jeżeli data="" to jest już korzeń naszego drzewa
+                                {
+                                    $("#wybranaZaawansowane").html(data);
+                                }
+
+                            });
+                            return false; //jeżeli znajdzie jakąś kategorię w dropdownliscie różnej od etykiety z id -1 to kończy działanie
+                        }
+                    });
+                }
+                if (this.id == "dalejKategoria") {
+
+                    $.get("/Ogloszenie/getChildrenCategory/" + $("#wybranaKategoria > option:selected").attr("value"), function (data) {
+                        if (data != "")//sprawdzanie czy metoda nie stwierdziła że to już jest liść
+                        {
+                            $("#wybranaKategoria").html(data);
+                        }
+
+                    });
+                }
+                if(this.id == "dalejZaawansowane")
+                {
+
+                    $.get("/Ogloszenie/getChildrenCategory/" + $("#wybranaZaawansowane > option:selected").attr("value"), function (data) {
+                        if (data != "")//sprawdzanie czy metoda nie stwierdziła że to już jest liść
+                        {
+                            $("#wybranaZaawansowane").html(data);
+                        }
+
+                    });
+                }
+            });
+        });
+    </script>
+
+    <link href="~/Content/bootstrap.css" rel="stylesheet" />
+</head>
+<body>
+    @{ var zalogowany = Session["zalogowany"] as OgloszeniaDrobne.Models.User;}
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                @Html.ActionLink("Strona Główna - Ogłoszenia", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+            </div>
+
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+
+                    @if (Session["zalogowany"] == null)
+                    {
+                        <ul class="nav navbar-nav navbar-right col-lg-2">
+                            <li><a href="/User/Registry"><span class="glyphicon glyphicon-user"></span> Zarejestruj</a></li>
+                            <li><a href="/User/LogIn"><span class="glyphicon glyphicon-log-in"></span> Zaloguj</a></li>
+                        </ul>
+                    }
+                    else
+                    {
+                        <ul class="nav navbar-nav navbar-right col-lg-4">
+                            <li><a href="#" style="pointer-events:none;">@if (zalogowany.Rola.Equals("ADMIN")) {<span>(ADMIN) </span> }
+                            Witaj,<strong>@zalogowany.Imie</strong></a></li>
+                            <li class="dropdown">
+                                <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                    Zarządzanie kontem
+                                    <span class="caret"></span>
+                                </a>
+                                @if (zalogowany.Rola.Equals("USER"))//zarządzanie profilem usera
+                                {
+                                    <ul class="dropdown-menu">
+                                        <li><a href="/Ogloszenie/MojeOgloszenia">Moje Ogłoszenia</a></li>
+                                        <li><a href="/User/Settings">Ustawienia</a></li>
+                                        <li><a href="/User/LogOff">Wyloguj</a></li>
+                                    </ul>
+                                }
+                                else //zarządzanie profilem admina
+                                {
+                                    <ul class="dropdown-menu">
+                                        <li class="dropdown-header">Słowa zakazane</li>
+                                        <li class="divider"></li>
+                                        <li><a href="/Admin/ZakazaneSlowo"><span class="glyphicon glyphicon-remove"></span> Zarządzanie słowami</a></li>
+                                        <li class="divider"></li>
+                                        <li class="dropdown-header">Użytkownicy</li>
+                                        <li class="divider"></li>
+                                        <li><a href="/Admin/ListaUzytkownikow"><span class="glyphicon glyphicon-wrench"></span> Zarządzanie Użytkownikami</a></li>
+                                        <li class="divider"></li>
+                                        <li class="dropdown-header">Kategorie</li>
+                                        <li class="divider"></li>
+                                        <li><a href="/Admin/DodajKategorie"><span class="glyphicon glyphicon-plus-sign"></span> Dodaj Kategorię</a></li>
+                                        <li><a href="/Admin/DeleteKategoria"><span class="glyphicon glyphicon-minus-sign"></span> Usuń Kategorię</a></li>
+                                        <li class="divider"></li>
+                                        <li class="dropdown-header">Atrybuty Kategorii</li>
+                                        <li class="divider"></li>
+                                        <li><a href="/Admin/EdytujAtrybut"><span class="glyphicon glyphicon-wrench"></span> Zarządzanie atrybutami</a></li>
+                                        <li class="divider"></li>
+                                        <li><a href="/User/LogOff"><span class="glyphicon glyphicon-off"></span> Wyloguj</a></li>
+
+                                    </ul>
+                                }
+                                
+                            </li>
+                        </ul>
+                    }
+                @if (zalogowany != null)
+                {
+                <ul class="nav navbar-nav navbar-left col-lg-2">
+                    <li><a href="/Ogloszenie/Dodaj"><span class="glyphicon glyphicon-plus"></span> Dodaj Ogłoszenie</a></li>
+                </ul>
+                }
+            </div>
+        </div>
+    </nav>
+
+    <div class="container body-content col-lg-2" style="border-right:1px dashed lightgrey">
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+
+        <div class="panel-group" id="accordion">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion" href="#collapse1">
+                           <strong>Wyszukiwanie po kategorii</strong> 
+                        </a>
+                    </h4>
+                </div>
+                <div id="collapse1" class="panel-collapse collapse in">
+                    <div class="panel-body">
+                        @{
+                            OgloszeniaDrobne.Controllers.OgloszenieController o = new OgloszeniaDrobne.Controllers.OgloszenieController();
+                        }
+                        <form action="/Ogloszenie/SzukajOgłoszeniaKategoria" method="post">
+                            <select class="form-control" id="wybranaKategoria" name="wybranaKategoria">
+                                <option value="-1" name="-1">Wybierz Kategorię...</option>
+                                @foreach (OgloszeniaDrobne.Models.Category category in o.getKorzenie())
+                                {
+                                    <option value="@category.CategoryID" name="@category.CategoryID">@category.Nazwa</option>
+                                }
+                            </select>
+                            <button type="button" id="wsteczKategoria" class="btn btn-info">Wstecz</button>
+                            <button type="button" id="dalejKategoria" class="btn btn-info">Dalej</button>
+                            <div class="form-group">
+                                <input type="submit" value="Szukaj" class="btn btn-default" />
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion" href="#collapse2">
+                           <strong>Wyszukiwanie słowo kluczowe</strong> 
+                        </a>
+                    </h4>
+                </div>
+                <div id="collapse2" class="panel-collapse collapse">
+                    <div class="panel-body">
+                        
+                        <form action="/Ogloszenie/SzukajOgloszeniaSlowoKlucz" method="post">
+
+                            <div class="form-group">
+                                <input class="form-control text-box single-line" data-val-required="Pole jest wymagane!" id="slowaklucze" name="slowaklucze" type="text" />
+                            </div>
+
+                            <div class="radio">
+                                <label><input type="radio" name="opcja" value="and" checked>AND</label>
+                            </div>
+                            <div class="radio">
+                                <label><input type="radio" name="opcja" value="or">OR</label>
+                            </div>
+                            <div class="radio">
+                                <label><input type="radio" name="opcja" value="not">NOT</label>
+                            </div>
+                            <input type="submit" value="Szukaj" class="btn btn-default" />
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion" href="#collapse3">
+                            <strong>Wyszukiwanie zaawansowane</strong> 
+                        </a>
+                    </h4>
+                </div>
+                <div id="collapse3" class="panel-collapse collapse">
+                    <div class="panel-body">
+                        
+                        <form action="/Ogloszenie/SzukajOgloszeniaZaawansowane" method="post">
+                            <select class="form-control" id="wybranaZaawansowane" name="wybranaZaawansowane">
+                                <option value="-1" name="-1">Wybierz Kategorię...</option>
+                                @foreach (OgloszeniaDrobne.Models.Category category in o.getKorzenie())
+                                {
+                                    <option value="@category.CategoryID" name="@category.CategoryID">@category.Nazwa</option>
+                                }
+                            </select>
+                            <button type="button" id="wsteczZaawansowane" class="btn btn-info">Wstecz</button>
+                            <button type="button" id="dalejZaawansowane" class="btn btn-info">Dalej</button>
+                            <br/><br/>
+                            <div id="extraZaawansowane">
+
+                            </div><br/><br/>
+                            <div class="form-group">
+                                <input type="submit" value="Szukaj" class="btn btn-default" />
+                            </div>
+
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+                    
+
+</div>
+
+    <div class="container body-content col-lg-10">
+
+        @RenderBody()
+        <hr />
+        <footer>
+            <p>&copy; @DateTime.Now.Year - Serwis Ogłoszeń</p>
+        </footer>
+
+    </div>
+    
+
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+</body>
+
+
+</html>

@@ -1,0 +1,96 @@
+﻿@model OgloszeniaDrobne.Models.Add
+@{
+    ViewBag.Title = "Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+@section scripts
+{
+    <script type="text/javascript">
+        $(document).ready(function () {
+           
+
+            $.get("/Category/getNawigacja/"+@Model.CategoryID, function (data) {
+                $("#nawigacja").html(data);
+            });
+
+        });
+    </script>
+}
+
+
+<div>
+    <h2>@Html.DisplayFor(model => model.Title)</h2>
+    <hr />
+    <ul class="breadcrumb" id="nawigacja">
+        
+    </ul>
+    <hr />
+    <h4>Szczegóły ogłoszenia:</h4>
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Data)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Data)
+        </dd>
+        <dt>
+            Wystawiający:
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.User.Login)
+        </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Content)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Content)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.TelephoneNumber)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.TelephoneNumber)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Price)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Price)
+        </dd>
+        @{ 
+            OgloszeniaDrobne.DAL.DbContext db = new OgloszeniaDrobne.DAL.DbContext();
+            List<OgloszeniaDrobne.Models.AddAtrribute> listaWartosciAtrybutow = ViewBag.ListaWartosciAtrybutow;
+            OgloszeniaDrobne.Models.Attribute atrybut;
+
+
+                foreach (var wartoscAtrybut in listaWartosciAtrybutow)
+                {
+
+                atrybut = db.Attributes.Find(wartoscAtrybut.AttributeID);
+
+                    <dt>@atrybut.Nazwa</dt>
+                    <dd>@wartoscAtrybut.Value</dd>
+                }
+            }
+
+    </dl>
+
+
+    <p>
+        @if ((String)Session["requestfrom"] == "Index")
+        {
+            @Html.ActionLink("Powrót", "Index", "Home")
+        }
+        else
+        {
+            @Html.ActionLink("Powrót", "MojeOgloszenia", "Ogloszenie")
+        }
+    </p>
+</div>

@@ -1,0 +1,63 @@
+﻿@model IEnumerable<OgloszeniaDrobne.Models.Add>
+
+@{
+    ViewBag.Title = "SzukajOgloszeniaSlowoKlucz";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var zalogowany = Session["zalogowany"] as OgloszeniaDrobne.Models.User;
+}
+
+@section scripts
+{
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            $("div").click(function () {
+
+                if (this.className.match("divogloszenie")) // div ma id jako ADDID
+                {
+                    window.location.href = "/Ogloszenie/Details/"+this.id;
+                }
+            });
+        });
+    </script>
+
+}
+
+<hr />
+<h2 style="color:cornflowerblue;text-align:center;">WYSZUKIWANIE SŁOWO KLUCZ</h2>
+<hr />
+Znaleziono: (@Model.Count() @if (@Model.Count() == 1)
+{ <span>ogłoszenie</span>}
+else
+{ <span>ogłoszenia</span> })
+<br /><br />
+
+@foreach (var item in Model)
+{
+    <div class="divogloszenie" id="@item.AddID" style="height:150px;border:2px solid black;border-radius:25px;width:100%;">
+        <div style="float:left;width:70%;font-size:33px;padding:5px;padding-left:25px;">
+            <strong>@Html.DisplayFor(modelItem => item.Title)</strong>
+        </div>
+        <div style="float:right;text-align:right;padding-top:5px;padding-right:25px;">
+            <h4>Cena:<strong> @Html.DisplayFor(modelItem => item.Price) zł</strong></h4>
+        </div>
+        <div style="clear:both;"></div>
+        <div style="float:right;text-align:right;width:30%;padding:5px;padding-right:25px;">
+            @if (zalogowany != null && zalogowany.Rola.Equals("ADMIN"))
+            {
+                <br /><a href="/Ogloszenie/Delete/@item.AddID"><span class="glyphicon glyphicon-remove"></span> Usuń</a>
+            }
+            <br /><br />Liczba odsłon: <strong>@item.LiczbaOdsłon</strong>
+        </div>
+        <div style="float:left;padding:5px;width:70%;padding-left:10px;">
+            @{
+                OgloszeniaDrobne.Controllers.CategoryController c = new OgloszeniaDrobne.Controllers.CategoryController();
+                String wynik = c.getNawigacja(item.CategoryID);
+            }
+            <ul class="breadcrumb" id="nawigacja">
+                @MvcHtmlString.Create(wynik)
+            </ul>
+        </div>
+    </div><br /><br />
+                }
+

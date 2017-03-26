@@ -1,0 +1,32 @@
+﻿@model IEnumerable<OgloszeniaDrobne.Models.BannedWord>
+
+@{
+    ViewBag.Title = "ZakazaneSlowo";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h2>Zakazane Słowa</h2>
+
+<p>
+    @Html.ActionLink("Dodaj nowe zakazane słowo", "DodajZakazaneSlowo")
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Word)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Word)
+        </td>
+        <td>
+            @Html.ActionLink("Usuń", "UsunZakazaneSlowo", new { id=item.BannedWordID })
+        </td>
+    </tr>
+}
+
+</table>
