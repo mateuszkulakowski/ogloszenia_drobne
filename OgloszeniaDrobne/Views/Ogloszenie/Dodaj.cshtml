@@ -1,0 +1,134 @@
+﻿@model OgloszeniaDrobne.Models.Add
+
+@{
+    ViewBag.Title = "Dodaj";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section scripts
+{
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            $("#CategoryID option[value=-1]").attr("selected", "selected");
+
+
+            $.get("/Ogloszenie/getExtra/" + $("#CategoryID > option:selected").attr("value"), function (data) {
+                $("#extra").html(data);
+            });
+        });
+
+        $("#CategoryID").change(function () {
+            $.get("/Ogloszenie/getExtra/" + $("#CategoryID > option:selected").attr("value"), function (data) {
+                $("#extra").html(data);
+            });
+
+            $("span").text("");
+
+            $.get("/Ogloszenie/getChildrenCategory/" + $("#CategoryID > option:selected").attr("value"), function (data) {
+                if (data != "")//sprawdzanie czy metoda nie stwierdziła że to już jest liść
+                {
+                    $("#CategoryID").html(data);
+                }
+
+            });
+        });
+
+        $("button").click(function () {
+
+            if(this.id == "wstecz")
+            {
+                $("#extra").html("");//usuwamy ustawione atrybuty
+
+                //klikniecie przycisku wstecz modyfikuje dropdownlist
+                $("#CategoryID option").each(function () {
+                    // Add $(this).val() to your list
+                    if ($(this).val() != -1)
+                    {
+                        $.get("/Ogloszenie/previousCategories/" + $(this).val(), function (data) {
+                            if (data != "")//jeżeli data="" to jest już korzeń naszego drzewa
+                            {
+                                $("#CategoryID").html(data);
+                            }
+
+                        });
+                        return false; //jeżeli znajdzie jakąś kategorię w dropdownliscie różnej od etykiety z id -1 to kończy działanie
+                    }
+                });
+                
+            }
+        });
+
+
+    </script>
+}
+
+<h2>Dodawanie Ogłoszenia</h2>
+
+
+@using (Html.BeginForm()) 
+{
+    @Html.AntiForgeryToken()
+    
+    <div class="form-horizontal">
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Title, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Title, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Title, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Content, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Content, new { htmlAttributes = new { @class = "form-control"} })
+                @Html.ValidationMessageFor(model => model.Content, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.TelephoneNumber, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.TelephoneNumber, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.TelephoneNumber, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Price, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Price, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Price, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.CategoryID, "Kategoria", htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10" id="chooseCategory">
+                        @Html.DropDownList("CategoryID", null, htmlAttributes: new { @class = "form-control" })
+                    <button type="button" id="wstecz" class="btn btn-info">Wstecz</button>
+                    <span style="color:red">@ViewBag.KomunikatBrakKategorii</span><br />
+                    <span style="color:red">@ViewBag.KomunikatMaDzieci</span><br />
+                    </div>
+                @Html.ValidationMessageFor(model => model.CategoryID, "", new { @class = "text-danger" })
+            </div>
+        
+
+        <div id="extra"></div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Dodaj" class="btn btn-default" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <span style="color:red">@ViewBag.KomunikatSłowoZakazane</span><br/>
+        </div>
+    </div>
+}
+

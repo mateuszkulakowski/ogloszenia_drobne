@@ -1,0 +1,144 @@
+﻿@model OgloszeniaDrobne.Models.Attribute
+
+@{
+    ViewBag.Title = "DodajAtrybut";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section scripts
+{
+    <script type="text/javascript">
+        var lp = 1;
+        $(document).ready(function () {
+
+            $("#Typ").change(function () {
+                if($(this).val() == "list")
+                {
+                    $("#napisDodajSlownik").show();
+                    $("#przyciskiSlownik").show();
+                    $("#extra").show();
+                    $("#extra").html("<div id=\""+lp+"\"><label class=\"control-label\" for=\"" + lp + "\">Opcja nr." + lp + "</label><input class=\"form-control text-box single-line\" type=\"text\" id=\"" + lp + "\" name=\"" + lp + "\" required/><br/></div>");
+                    lp++;
+                }
+                else {
+                    for (lp; lp >= 1;lp--)//usuwanie wszystkich pól dodatkowych po polach słownika
+                    {
+                        $("div").remove("#" + lp);
+                    }
+                    lp = 1;
+                    $("#przyciskiSlownik").hide();
+                    $("#napisDodajSlownik").hide();
+                    $("#extra").hide();
+                }
+            });
+
+            $("button").click(function () {
+
+                if (this.id == "wstecz1") {
+
+                    //klikniecie przycisku wstecz modyfikuje dropdownlist
+                    $("#CategoryID option").each(function () {
+                        // Add $(this).val() to your list
+                        if ($(this).val() != -1) {
+                            $.get("/Ogloszenie/previousCategories/" + $(this).val(), function (data) {
+                                if (data != "")//jeżeli data="" to jest już korzeń naszego drzewa
+                                {
+                                    $("#CategoryID").html(data);
+                                }
+
+                            });
+                            return false; //jeżeli znajdzie jakąś kategorię w dropdownliscie różnej od etykiety z id -1 to kończy działanie
+                        }
+                    });
+                }
+                if (this.id == "dalej1") {
+
+                    $.get("/Ogloszenie/getChildrenCategory/" + $("#CategoryID > option:selected").attr("value"), function (data) {
+                        if (data != "")//sprawdzanie czy metoda nie stwierdziła że to już jest liść
+                        {
+                            $("#CategoryID").html(data);
+                        }
+
+                    });
+                }
+                if (this.id == "dodajPozycjeSlownik")
+                {
+                    $("#extra").append("<div id=\"" + lp+ "\"><label class=\"control-label\" for=\"" + lp + "\">Opcja nr." + lp + "</label><input class=\"form-control text-box single-line\" type=\"text\" id=\"" + lp + "\" name=\"" + lp + "\" required/><br/></div>");
+                    lp++;
+                }
+                if(this.id == "usunPozycjeSlownik")
+                {
+                    if (lp > 2)
+                    {
+                        lp--;
+                        $("div").remove("#" + lp);
+                        
+                    }
+                }
+            });
+
+        });
+    </script>    
+    
+}
+
+<h2>Dodawanie Atrybutu</h2>
+
+@using (Html.BeginForm()) 
+{
+    @Html.AntiForgeryToken()
+    
+    <div class="form-horizontal">
+
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.Nazwa, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Nazwa, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Nazwa, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Typ, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                <select class="form-control" id="Typ" name="Typ">
+                    <option selected="selected" value="number">Integer</option>
+                    <option value="text">Short Text</option>
+                    <option value="textarea">Long Text</option>
+                    <option value="double">Double</option>
+                    <option value="checkbox">Bool</option>
+                    <option value="list">Lista</option>
+
+                </select>
+                @Html.ValidationMessageFor(model => model.Typ, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.CategoryID, "CategoryID", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("CategoryID", null, htmlAttributes: new { @class = "form-control" })
+                <button type="button" id="wstecz1" class="btn btn-info">Wstecz</button>
+                <button type="button" id="dalej1" class="btn btn-info">Dalej</button>
+                @Html.ValidationMessageFor(model => model.CategoryID, "", new { @class = "text-danger" })
+                <span style="color:red">@ViewBag.NieWybranoKategorii</span>
+            </div>
+        </div><br/>
+
+        <h4 id="napisDodajSlownik" style="display:none;">Dodaj słownik związany z tym atrybutem:</h4>
+        <div id="przyciskiSlownik" style="display:none;">
+            <button type="button" id="dodajPozycjeSlownik" class="btn btn-danger">Dodaj Pozycję</button>
+            <button type="button" id="usunPozycjeSlownik" class="btn btn-danger">Usuń ost. pozycję</button>
+        </div>
+        <div id="extra" class="form-group" style="display:none;">
+        </div><br/><br/>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Dodaj" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+

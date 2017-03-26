@@ -1,0 +1,140 @@
+﻿@model OgloszeniaDrobne.Models.Attribute
+@{
+    ViewBag.Title = "EdytujAtr";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    int licznik = 1;
+}
+
+@section scripts
+{
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            var lp = @licznik;
+            $("#Typ > option").each(function () {
+                var model = @Html.Raw(@ViewBag.Typ);
+                if($(this).val() == model.Typ)$(this).attr('selected','selected');
+            });
+            $("#CategoryID").hide();
+
+            if($("#Typ").val() == "list")
+            {
+                $("#napisDodajSlownik").show();
+                $("#przyciskiSlownik").show();
+                $("#extra").show();
+            }
+
+            $("#Typ").change(function () {
+                if($(this).val() == "list")
+                {
+                    $("#napisDodajSlownik").show();
+                    $("#przyciskiSlownik").show();
+                    $("#extra").show();
+                    $("#extra").html("<div id=\""+lp+"\"><label class=\"control-label\" for=\"" + lp + "\">Opcja nr." + lp + "</label><input class=\"form-control text-box single-line\" type=\"text\" id=\"" + lp + "\" name=\"" + lp + "\" required/><br/></div>");
+                    lp++;
+                }
+                else {
+                    for (lp; lp >= 1;lp--)//usuwanie wszystkich pól dodatkowych po polach słownika
+                    {
+                        $("div").remove("#" + lp);
+                    }
+                    lp = 1;
+                    $("#przyciskiSlownik").hide();
+                    $("#napisDodajSlownik").hide();
+                    $("#extra").hide();
+                }
+            });
+
+            $("button").click(function () {
+                if(this.id == "dodajPozycjeSlownik")
+                {
+                    $("#extra").append("<div id=\"" + lp+ "\"><label class=\"control-label\" for=\"" + lp + "\">Opcja nr." + lp + "</label><input class=\"form-control text-box single-line\" type=\"text\" id=\"" + lp + "\" name=\"" + lp + "\" required/><br/></div>");
+                    lp++;
+                }
+                if(this.id == "usunPozycjeSlownik")
+                {
+                    if (lp > 2)
+                    {
+                        lp--;
+                        $("div").remove("#" + lp);
+                        
+                    }
+                }
+            });
+
+ 
+        });
+    </script>
+
+}
+
+<h2>Edycja Atrybutu</h2>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        <div class="form-group">
+            <div class="col-md-10">
+                <input style="display:none;" class="form-control text-box single-line" id="AttributeID" name="AttributeID" type="number" value="@Model.AttributeID" />
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Nazwa, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Nazwa, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Nazwa, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Typ, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                <select class="form-control" id="Typ" name="Typ">
+                    <option value="number">Integer</option>
+                    <option value="text">Short Text</option>
+                    <option value="textarea">Long Text</option>
+                    <option value="double">Double</option>
+                    <option value="checkbox">Bool</option>
+                    <option value="list">Lista</option>
+
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-10">
+                @Html.DropDownList("CategoryID", null, htmlAttributes: new { @class = "form-control" })
+            </div>
+        </div>
+
+        <h4 id="napisDodajSlownik" style="display:none;">Dodaj słownik związany z tym atrybutem:</h4>
+        <div id="przyciskiSlownik" style="display:none;">
+            <button type="button" id="dodajPozycjeSlownik" class="btn btn-danger">Dodaj Pozycję</button>
+            <button type="button" id="usunPozycjeSlownik" class="btn btn-danger">Usuń ost. pozycję</button>
+        </div>
+        <div id="extra" class="form-group" style="display:none;">
+            @foreach (OgloszeniaDrobne.Models.Dictionary polewyboru in ViewBag.listaWyboru)
+            {
+                <div id="@licznik">
+                    <label class="control-label" for="@licznik">Opcja nr.@licznik</label>
+                    <input class="form-control text-box single-line" type="text" id="@licznik" name="@licznik" value="@polewyboru.Pole" required />
+                    <br/>
+                </div>
+                 {licznik++;}
+            }
+        </div><br /><br />
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Dodaj" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
